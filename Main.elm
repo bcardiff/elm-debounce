@@ -4,6 +4,7 @@ import Html exposing (..)
 import Html.App as App
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
+import Debounce
 
 
 type alias Model =
@@ -12,6 +13,7 @@ type alias Model =
 
 type Msg
     = Clicked
+    | Deb Msg
 
 
 main : Program Never
@@ -33,9 +35,24 @@ update msg model =
         Clicked ->
             ( { model | counter = model.counter + 1 }, Cmd.none )
 
+        Deb a ->
+            deb_update a model
+
 
 view model =
     h1 []
         [ text ("Counter " ++ (toString model.counter))
-        , button [ onClick Clicked ] [ text "inc" ]
+        , button [ onClick (deb Clicked) ] [ text "inc" ]
         ]
+
+
+cfg =
+    Debounce.config Deb 200
+
+
+deb =
+    Debounce.debounce cfg
+
+
+deb_update =
+    Debounce.update cfg
