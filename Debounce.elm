@@ -1,4 +1,4 @@
-module Debounce exposing (Config, State, Msg, init, config, update, debounce)
+module Debounce exposing (Config, State, Msg, init, config, update, debounce, debounce1)
 
 import Task
 import Process
@@ -63,6 +63,10 @@ update (Config getState updateState msg delay) deb_msg model =
 
 debounce (Config _ _ msg delay) =
     (\raw_msg -> msg (Raw raw_msg))
+
+
+debounce1 (Config _ _ msg delay) =
+    (\raw_msg a -> msg (Raw (raw_msg a)))
 
 
 
