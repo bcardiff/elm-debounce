@@ -13,7 +13,7 @@ type alias Model =
 
 type Msg
     = Clicked
-    | Deb Msg
+    | Deb (Debounce.Msg Msg)
 
 
 main : Program Never
@@ -36,7 +36,7 @@ update msg model =
             ( { model | counter = model.counter + 1 }, Cmd.none )
 
         Deb a ->
-            deb_update a model
+            Debounce.update cfg a model
 
 
 view model =
@@ -47,12 +47,8 @@ view model =
 
 
 cfg =
-    Debounce.config Deb 200
+    Debounce.config Deb 1000
 
 
 deb =
     Debounce.debounce cfg
-
-
-deb_update =
-    Debounce.update cfg
