@@ -8,7 +8,9 @@ import Debounce
 
 
 type alias Model =
-    { counter : Int }
+    { counter : Int
+    , deb : Debounce.State
+    }
 
 
 type Msg
@@ -27,7 +29,7 @@ main =
 
 
 init =
-    ( { counter = 0 }, Cmd.none )
+    ( { counter = 0, deb = Debounce.init }, Cmd.none )
 
 
 update msg model =
@@ -47,7 +49,11 @@ view model =
 
 
 cfg =
-    Debounce.config Deb 1000
+    Debounce.config
+        .deb
+        (\model state -> { model | deb = state })
+        Deb
+        1000
 
 
 deb =
