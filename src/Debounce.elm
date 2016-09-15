@@ -1,4 +1,4 @@
-module Debounce exposing (Config, State, Msg, init, config, update, debounce, debounce1)
+module Debounce exposing (Config, State, Msg, init, config, update, debounce, debounce1, debounceCmd)
 
 {-|
 This modules allows easy usage of debounced events from the view.
@@ -83,6 +83,8 @@ cfg =
 
 5) Enjoy!
 
+## Debouncing messages with values (onInput)
+
 If the message that is wanted to be debounced hold data:
 
 ```
@@ -99,10 +101,31 @@ deb1 : (a -> Msg) -> (a -> Msg)
 deb1 = Debounce.debounce1 cfg
 ```
 
-# Functions to create `deb` `deb1` nice helpers
+## Debouncing messages from the update
+
+If you want to debounce a message generated from the `update`
+
+```
+update msg model =
+    case msg of
+        ... s ... ->
+            ( ... , debCmd <| UserInput s )
+
+        UserInput s ->
+            ( ... , Cmd.none )
+
+        Deb a ->
+            Debounce.update cfg a model
+
+debCmd =
+    Debounce.debounceCmd cfg
+```
+
+# Functions to create `deb` `deb1` `debCmd` nice helpers
 
 @docs debounce
 @docs debounce1
+@docs debounceCmd
 
 # Boilerplate functions
 
@@ -211,6 +234,14 @@ debounce (Config _ _ msg delay) =
 debounce1 : Config model msg -> (a -> msg) -> (a -> msg)
 debounce1 (Config _ _ msg delay) =
     (\raw_msg a -> msg (Raw (raw_msg a)))
+
+
+{-|
+  Helper function for deboucing a Cmd.
+-}
+debounceCmd : Config model msg -> msg -> Cmd msg
+debounceCmd cfg msg =
+    performMessage <| debounce cfg msg
 
 
 
