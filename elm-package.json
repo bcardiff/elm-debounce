@@ -1,5 +1,5 @@
 {
-    "version": "1.0.0",
+    "version": "1.0.1",
     "summary": "This modules allows easy usage of debounced events from the view.",
     "repository": "https://github.com/bcardiff/elm-debounce.git",
     "license": "MIT",
