@@ -159,7 +159,8 @@ type Config model msg
   State to be included in model.
 -}
 type State
-    = State Int
+    = Scheduled Process.Id
+    | Idle
 
 
 {-|
@@ -167,7 +168,15 @@ type State
 -}
 type Msg msg
     = Raw msg
-    | Deferred Int msg
+    | Schedule Process.Id
+      -- a new process scheduled to perform the action
+    | Perform msg
+      -- action performed
+    | Nop
+
+
+
+-- needed as cmd following Perfom
 
 
 {-|
@@ -175,7 +184,7 @@ type Msg msg
 -}
 init : State
 init =
-    State 0
+    Idle
 
 
 {-|
@@ -194,30 +203,39 @@ update (Config getState updateState msg delay) deb_msg model =
     case deb_msg of
         Raw m ->
             let
-                oldState =
-                    (getState model)
-
-                newIncarnation =
-                    (incarnation oldState) + 1
-
                 deferredTask =
-                    ((Process.sleep delay) `Task.andThen` (always (Task.succeed (msg <| Deferred newIncarnation m))))
-            in
-                ( (updateState model (setIncarnation oldState newIncarnation))
-                , (Task.perform unreachable identity deferredTask)
-                )
-
-        Deferred i m ->
-            let
-                validIncarnation =
-                    (incarnation (getState model)) == i
+                    (Process.sleep delay)
+                        `Task.andThen`
+                            (always
+                                (Task.succeed (msg (Perform m)))
+                            )
             in
                 ( model
-                , if validIncarnation then
-                    (performMessage m)
-                  else
-                    Cmd.none
+                , (Task.perform unreachable
+                    identity
+                    (Task.map
+                        (\id -> msg (Schedule id))
+                        (Process.spawn deferredTask)
+                    )
+                  )
                 )
+
+        Schedule id ->
+            -- when a new process is scheduled, kill the previous one (if exists)
+            ( updateState model (Scheduled id)
+            , case (getState model) of
+                Idle ->
+                    Cmd.none
+
+                Scheduled prevId ->
+                    Task.perform unreachable (always (msg Nop)) (Process.kill prevId)
+            )
+
+        Perform m ->
+            ( updateState model Idle, performMessage m )
+
+        Nop ->
+            ( model, Cmd.none )
 
 
 {-|
@@ -246,14 +264,6 @@ debounceCmd cfg msg =
 
 
 -- http://faq.elm-community.org/17.html#how-do-i-generate-a-new-message-as-a-command
-
-
-incarnation (State i) =
-    i
-
-
-setIncarnation (State _) i =
-    State i
 
 
 unreachable =
