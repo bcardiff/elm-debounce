@@ -72,7 +72,7 @@ update msg model =
 4) Configure the debounce component using `Debounce.config`
 
 ```
-cfg : Debounce.Config
+cfg : Debounce.Config Model Msg
 cfg =
     Debounce.config
         .d                               -- getState   : Model -> Debounce.State
