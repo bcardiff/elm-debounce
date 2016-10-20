@@ -32,7 +32,7 @@ You will want to specify the timeout for the debounce.
 This is usually constant, hence, it does not belongs to the model or state of the app.
 
 ```
-cfg : Debounce.Config
+cfg : Debounce.Config Model Msg
 cfg = ... configuration of the debounce component ...
 
 deb : Msg -> Msg
