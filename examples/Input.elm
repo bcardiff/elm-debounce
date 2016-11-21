@@ -1,7 +1,6 @@
 module Main exposing (..)
 
 import Html exposing (..)
-import Html.App as App
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
 import Debounce
@@ -18,9 +17,8 @@ type Msg
     | Deb (Debounce.Msg Msg)
 
 
-main : Program Never
 main =
-    App.program
+    Html.program
         { init = init
         , view = view
         , update = update
