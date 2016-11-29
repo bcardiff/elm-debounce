@@ -143,6 +143,7 @@ debCmd =
 
 import Task
 import Process
+import Helpers
 
 
 -- a Config msg is represented by a message wrapper and the desired timeout for the debounce
@@ -199,12 +200,9 @@ update (Config getState updateState msg delay) deb_msg model =
 
                 newIncarnation =
                     (incarnation oldState) + 1
-
-                deferredTask =
-                    ((Process.sleep delay) `Task.andThen` (always (Task.succeed (msg <| Deferred newIncarnation m))))
             in
                 ( (updateState model (setIncarnation oldState newIncarnation))
-                , (Task.perform unreachable identity deferredTask)
+                , Helpers.deferredCmd delay (msg <| Deferred newIncarnation m)
                 )
 
         Deferred i m ->
@@ -244,10 +242,6 @@ debounceCmd cfg msg =
     performMessage <| debounce cfg msg
 
 
-
--- http://faq.elm-community.org/17.html#how-do-i-generate-a-new-message-as-a-command
-
-
 incarnation (State i) =
     i
 
@@ -260,5 +254,6 @@ unreachable =
     (\_ -> Debug.crash "This failure cannot happen.")
 
 
+performMessage : msg -> Cmd msg
 performMessage msg =
-    Task.perform unreachable identity (Task.succeed msg)
+    Task.perform (always msg) (Task.succeed never)
